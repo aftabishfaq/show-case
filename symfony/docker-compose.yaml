@@ -1,0 +1,72 @@
+version: "3.7"
+services:
+  app:
+    build:
+      args:
+        user: symfony
+        uid: 1001
+      context: docker
+      dockerfile: php/Doc kerfile
+    image: symfony-app-image
+    container_name: symfony-app
+    restart: unless-stopped
+    working_dir: /var/www/
+    volumes:
+      - ./:/var/www
+      - ./docker/php/uploads.ini:/usr/local/etc/php/conf.d/uploads.ini
+    networks:
+      - symfonynetwork
+
+  db:
+    container_name: symfony-db
+    image: postgres:latest
+    restart: unless-stopped
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=root
+      - POSTGRES_DB=symfony_db
+    networks:
+      - symfonynetwork
+
+  adminer:
+    container_name: symfony-adminer
+    image: adminer
+    ports:
+      - 8080:8080
+    depends_on:
+      - db
+    networks:
+      - symfonynetwork
+
+  nginx:
+    build:
+      context: docker
+      dockerfile: nginx/Dockerfile
+    container_name: symfony-nginx
+    image: symfony-nginx-image
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./:/var/www
+      - ./docker/nginx:/etc/nginx/conf.d
+    networks:
+      - symfonynetwork
+
+  mailhod:
+    container_name: symfony-mailhog
+    image: mailhog/mailhog
+    restart: always
+    logging:
+      driver: "none"
+    ports:
+    - "8025:8025"
+    - "1025:1025"
+    networks:
+      - symfonynetwork
+
+networks:
+  symfonynetwork:
+    driver: bridge

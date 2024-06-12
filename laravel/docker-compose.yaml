@@ -1,0 +1,70 @@
+version: "3.7"
+services:
+  app:
+    build:
+      args:
+        user: laravel
+        uid: 1001
+      context: docker
+      dockerfile: php/Dockerfile
+    image: laravel-app-image
+    container_name: laravel-app
+    restart: unless-stopped
+    working_dir: /var/www/
+    volumes:
+      - ./:/var/www
+      - ./docker/php/uploads.ini:/usr/local/etc/php/conf.d/uploads.ini
+    networks:
+      - laravelnetwork
+
+  db:
+    build:
+      context: docker
+      dockerfile: mariadb/Dockerfile
+    container_name: laravel-db
+    image: laravel-db-image
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: 'laravel_db'
+      MYSQL_ROOT_PASSWORD: 'root'
+      MYSQL_PASSWORD: 'root'
+      MYSQL_USER: 'laravel_user'
+    volumes:
+      - ./db/mariadb:/var/lib/mysql
+      - ./docker/mariadb/my.cnf:/etc/mysql/my.cnf
+    networks:
+      - laravelnetwork
+
+  phpmyadmin:
+      image: phpmyadmin/phpmyadmin
+      container_name: laravel-phpmyadmin
+      links: 
+          - db:db
+      ports:
+          - 8001:80
+      environment:
+        MYSQL_ROOT_PASSWORD: 'root'
+        MYSQL_PASSWORD: 'root'
+        MYSQL_USER: 'laravel_user'
+        UPLOAD_LIMIT: 300M
+      networks:
+        - laravelnetwork
+
+  nginx:
+    build:
+      context: docker
+      dockerfile: nginx/Dockerfile
+    container_name: laravel-nginx
+    image: laravel-nginx-image
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./:/var/www
+      - ./docker/nginx:/etc/nginx/conf.d
+    networks:
+      - laravelnetwork
+
+networks:
+  laravelnetwork:
+    driver: bridge
