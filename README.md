@@ -4,8 +4,8 @@ This is just a show case of some sample codes and other material.
 
 ### Coding Projects
 
-- [Symfony Project Docker Config](./wopla/README.md)
-- [Laravel Project Docker Config](./wecreate/README.md)
+- [Symfony Project Docker Config](./symfony/README.md)
+- [Laravel Project Docker Config](./laravel/README.md)
 
 ### Presentations
 
